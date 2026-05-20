@@ -61,7 +61,7 @@
          :class="{ dragging }"></div>
 
     <section id="reader-panel">
-      <header id="entry-list-header" x-show="entries.length || deletedFeed">
+      <header id="entry-list-header" x-show="activeFeed || deletedFeed">
         <h2 class="feed-name" x-text="activeFeed?.title || deletedFeed?.title"></h2>
         <button x-show="activeFeed" type="button" @click="markAll('read')">Mark all read</button>
         <button x-show="activeFeed" type="button" @click="markAll('unread')">Mark all unread</button>
