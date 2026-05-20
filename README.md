@@ -83,6 +83,25 @@ location / {
 
 No build step — updates are a file copy.
 
+### Hosting on a different domain
+
+The same-origin layout above is the simplest, but Ridge can also run on a
+separate host from Miniflux (e.g. `https://reader.example.com/` talking to
+`https://miniflux.example.org/`). Miniflux's API ships permissive CORS
+headers by default (`Access-Control-Allow-Origin: *`, `Authorization` in
+`Access-Control-Allow-Headers`), and Ridge authenticates with HTTP Basic,
+so cross-origin calls work without cookies.
+
+To enable it:
+
+1. Edit `API_BASE` at the top of `src/app.js` from `'/v1'` to the absolute
+   Miniflux API URL, e.g. `'https://miniflux.example.org/v1'`.
+2. Serve Ridge over HTTPS if Miniflux is on HTTPS — browsers block mixed
+   content.
+3. Make sure no reverse proxy in front of Miniflux strips the CORS
+   response headers; if it does, the first API call fails with an opaque
+   CORS error in the browser console.
+
 ## Credentials & session
 
 - the user types their Miniflux username and password at startup; we send
