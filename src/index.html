@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ridge</title>
+  <link rel="stylesheet" href="assets/modern-normalize.css">
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js"></script>
+  <script src="assets/alpine.min.js" defer></script>
+</head>
+<body x-data="app()" x-init="init()" x-cloak @keydown.window="handleKey($event)">
+
+  <section id="login" x-show="!authed">
+    <h1>Ridge</h1>
+    <form id="login-form" @submit.prevent="signIn($event.target)">
+      <label>Username
+        <input name="user" type="text" autocomplete="username" required>
+      </label>
+      <label>Password
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit">Sign in</button>
+      <p id="login-error" x-show="loginError" x-text="loginError"></p>
+    </form>
+  </section>
+
+  <main id="app" x-show="authed" :style="`--feeds-width: ${feedsWidth}`">
+    <aside id="feeds-panel">
+      <header>
+        <h2>Feeds</h2>
+        <button id="signout" type="button" @click="signOut()">Sign out</button>
+      </header>
+      <div class="feeds-scroll">
+      <ul id="feed-list">
+        <template x-for="feed in feeds" :key="feed.id">
+          <li :data-feed-id="feed.id"
+              :class="{ zero: (counts[feed.id] || 0) === 0, active: feed.id === activeFeedId }">
+            <a href="#" @click.prevent="selectFeed(feed.id)">
+              <template x-if="iconFor(feed)">
+                <img class="favicon" :src="'data:' + iconFor(feed)" alt="">
+              </template>
+              <template x-if="!iconFor(feed)">
+                <span class="favicon favicon-empty"></span>
+              </template>
+              <span class="title" x-text="feed.title"></span>
+              <span class="count" x-text="counts[feed.id] || 0"></span>
+            </a>
+          </li>
+        </template>
+      </ul>
+      </div>
+    </aside>
+
+    <div id="resizer"
+         role="separator" aria-orientation="vertical"
+         x-data="resizer()"
+         @mousedown.prevent="start"
+         @mousemove.window="onMove"
+         @mouseup.window="onEnd"
+         :class="{ dragging }"></div>
+
+    <section id="reader-panel">
+      <header id="entry-list-header" x-show="entries.length || deletedFeed">
+        <h2 class="feed-name" x-text="activeFeed?.title || deletedFeed?.title"></h2>
+        <button x-show="activeFeed" type="button" @click="markAll('read')">Mark all read</button>
+        <button x-show="activeFeed" type="button" @click="markAll('unread')">Mark all unread</button>
+        <button x-show="activeFeed" type="button" @click="unsubscribe()">Unsubscribe</button>
+        <button x-show="deletedFeed" type="button" @click="resubscribe()">Subscribe</button>
+      </header>
+      <div class="entry-scroll" @scroll="onEntryScroll($event.target)">
+      <ul id="entry-list">
+        <template x-for="entry in entries" :key="entry.id">
+          <li class="entry" :data-status="entry.status" :data-entry-id="entry.id">
+            <details :open="expandedEntryId === entry.id" @toggle="onToggle($event, entry)">
+              <summary @click.prevent="toggleExpanded(entry)">
+                <span class="entry-title" x-text="entry.title"></span>
+                <span class="entry-meta" :title="entry.published_at" x-text="formatDate(entry.published_at)"></span>
+                <span class="entry-status"
+                      role="button" tabindex="0" aria-label="toggle read"
+                      @click.prevent.stop="toggleStatus(entry)"></span>
+              </summary>
+              <div class="entry-body">
+                <p class="entry-actions">
+                  <button type="button"
+                          @click="fetchContent(entry)"
+                          :disabled="entry.fetching"
+                          x-text="entry.fetching ? 'Fetching…' : 'Fetch full content'"></button>
+                  <a :href="entry.url" target="_blank" rel="noopener noreferrer">Open original &rarr;</a>
+                </p>
+              </div>
+            </details>
+          </li>
+        </template>
+      </ul>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
