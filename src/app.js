@@ -296,6 +296,11 @@ window.app = () => ({
     } else if (k === 'k' && !e.shiftKey) {
       e.preventDefault();
       this.prevEntry();
+    } else if (k === 'g' && e.shiftKey) {
+      const entry = this.entries.find((x) => x.id === this.expandedEntryId);
+      if (!entry) return;
+      e.preventDefault();
+      this.fetchContent(entry);
     }
   },
 
