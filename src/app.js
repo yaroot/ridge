@@ -1,6 +1,7 @@
 const SESSION_KEY = 'ridge-session';
 const ICON_KEY = 'ridge-icons';
 const FEEDS_WIDTH_KEY = 'ridge-feeds-width';
+const HIDE_READ_KEY = 'ridge-hide-read';
 const API_BASE = '/v1';
 const ITEMS_LIMIT = 25;
 const MIN_FEEDS_WIDTH = 128;
@@ -76,6 +77,7 @@ window.app = () => ({
   expandedEntryId: null,
   deletedFeed: null,
   helpVisible: false,
+  hideRead: !!loadJSON(HIDE_READ_KEY),
   feedsWidth: localStorage.getItem(FEEDS_WIDTH_KEY) || '16rem',
 
   formatDate,
@@ -87,6 +89,40 @@ window.app = () => ({
 
   get activeFeed() {
     return this.feeds.find((f) => f.id === this.activeFeedId);
+  },
+
+  get visibleFeeds() {
+    if (!this.hideRead) return this.feeds;
+    // counts arrive after feeds; don't blank the list while they load
+    if (!Object.keys(this.counts).length) return this.feeds;
+    return this.feeds.filter(
+      (f) => (this.counts[f.id] || 0) > 0 || f.id === this.activeFeedId,
+    );
+  },
+
+  get visibleEntries() {
+    if (!this.hideRead) return this.entries;
+    // the open entry stays visible even though expanding marks it read
+    return this.entries.filter(
+      (e) => e.status === 'unread' || e.id === this.expandedEntryId,
+    );
+  },
+
+  toggleHideRead() {
+    this.hideRead = !this.hideRead;
+    saveJSON(HIDE_READ_KEY, this.hideRead);
+    if (this.hideRead) this.fillEntryScroll();
+  },
+
+  // with read entries hidden, a page can render too short to ever fire
+  // the scroll handler — keep paging until the panel overflows or the
+  // feed is exhausted
+  fillEntryScroll() {
+    if (!this.hideRead) return;
+    this.$nextTick(() => {
+      const el = document.querySelector('.entry-scroll');
+      if (el && el.scrollHeight <= el.clientHeight) this.loadMoreEntries();
+    });
   },
 
   iconFor(feed) {
@@ -190,6 +226,7 @@ window.app = () => ({
       const r = await this.apiGet(this.entriesUrl(id, 0));
       this.entries = (r.entries || []).map((e) => ({ ...e, fetching: false }));
       this.entriesTotal = r.total || 0;
+      this.fillEntryScroll();
     } catch { /* handled in apiCall */ }
   },
 
@@ -241,13 +278,19 @@ window.app = () => ({
   async loadMoreEntries() {
     if (this.entriesLoading || !this.activeFeedId || !this.hasMoreEntries) return;
     this.entriesLoading = true;
+    let grew = false;
     try {
       const r = await this.apiGet(this.entriesUrl(this.activeFeedId, this.entries.length));
       const more = (r.entries || []).map((e) => ({ ...e, fetching: false }));
+      grew = more.length > 0;
       this.entries = [...this.entries, ...more];
       this.entriesTotal = r.total ?? this.entriesTotal;
     } catch { /* handled in apiCall */ }
-    finally { this.entriesLoading = false; }
+    finally {
+      this.entriesLoading = false;
+      // only keep auto-filling on success — a failing request would loop
+      if (grew) this.fillEntryScroll();
+    }
   },
 
   onEntryScroll(el) {
@@ -267,19 +310,21 @@ window.app = () => ({
   },
 
   nextEntry() {
-    if (!this.entries.length) return;
-    const i = this.entries.findIndex((e) => e.id === this.expandedEntryId);
-    const next = this.entries[i + 1];
+    const list = this.visibleEntries;
+    if (!list.length) return;
+    const i = list.findIndex((e) => e.id === this.expandedEntryId);
+    const next = list[i + 1];
     if (!next) return;
     this.expandedEntryId = next.id;
     this.scrollEntryIntoView(next.id);
   },
 
   prevEntry() {
-    if (!this.entries.length) return;
-    const i = this.entries.findIndex((e) => e.id === this.expandedEntryId);
+    const list = this.visibleEntries;
+    if (!list.length) return;
+    const i = list.findIndex((e) => e.id === this.expandedEntryId);
     if (i <= 0) return;
-    const prev = this.entries[i - 1];
+    const prev = list[i - 1];
     this.expandedEntryId = prev.id;
     this.scrollEntryIntoView(prev.id);
   },
@@ -315,6 +360,9 @@ window.app = () => ({
     } else if (k === 'k' && e.shiftKey) {
       e.preventDefault();
       this.markReadRelative('above');
+    } else if (k === 'm' && e.shiftKey) {
+      e.preventDefault();
+      this.toggleHideRead();
     } else if (k === 'g' && e.shiftKey) {
       const entry = this.entries.find((x) => x.id === this.expandedEntryId);
       if (!entry) return;

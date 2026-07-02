@@ -29,11 +29,14 @@
     <aside id="feeds-panel">
       <header>
         <h2>Feeds</h2>
+        <button id="hide-read" type="button" x-show="hideRead"
+                title="Read feeds and entries are hidden — click or press Shift+M to show them"
+                @click="toggleHideRead()">unread only</button>
         <button id="signout" type="button" @click="signOut()">Sign out</button>
       </header>
       <div class="feeds-scroll">
       <ul id="feed-list">
-        <template x-for="feed in feeds" :key="feed.id">
+        <template x-for="feed in visibleFeeds" :key="feed.id">
           <li :data-feed-id="feed.id"
               :class="{ zero: (counts[feed.id] || 0) === 0, active: feed.id === activeFeedId }">
             <a href="#" @click.prevent="selectFeed(feed.id)">
@@ -70,7 +73,7 @@
       </header>
       <div class="entry-scroll" @scroll="onEntryScroll($event.target)">
       <ul id="entry-list">
-        <template x-for="entry in entries" :key="entry.id">
+        <template x-for="entry in visibleEntries" :key="entry.id">
           <li class="entry" :data-status="entry.status" :data-entry-id="entry.id">
             <details :open="expandedEntryId === entry.id" @toggle="onToggle($event, entry)">
               <summary @click.prevent="toggleExpanded(entry)">
@@ -105,6 +108,7 @@
           <tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>Mark the whole feed as read</td></tr>
           <tr><td><kbd>Shift</kbd>+<kbd>K</kbd></td><td>Mark everything above the open entry as read</td></tr>
           <tr><td><kbd>Shift</kbd>+<kbd>J</kbd></td><td>Mark everything below the open entry as read</td></tr>
+          <tr><td><kbd>Shift</kbd>+<kbd>M</kbd></td><td>Hide / show read feeds and entries</td></tr>
           <tr><td><kbd>Shift</kbd>+<kbd>G</kbd></td><td>Fetch full content for the open entry</td></tr>
           <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Close this help</td></tr>

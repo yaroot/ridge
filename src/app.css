@@ -97,12 +97,13 @@ body {
 body.resizing { cursor: col-resize; user-select: none; }
 #feeds-panel header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
   flex: 0 0 auto;
   padding: 1rem 1rem 0.5rem;
 }
 #feeds-panel h2 {
+  flex: 1 1 auto;
   margin: 0;
   font-size: 1rem;
   font-family: var(--serif);
@@ -153,6 +154,17 @@ body.resizing { cursor: col-resize; user-select: none; }
 #feed-list li.active .title { font-weight: 600; }
 #feed-list li.zero.active a { color: var(--accent); }
 #feed-list li.zero.active .favicon { opacity: 1; }
+#hide-read {
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0.125rem 0.5rem;
+  font: inherit;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
 #signout {
   font-size: 0.75rem;
   background: transparent;

@@ -21,6 +21,8 @@ See [DEV.md](DEV.md) for implementation details.
   prompt; on success the button slot is replaced by `Subscribe`, which
   re-creates the feed from the cached `feed_url` + `category_id` to undo
   in one click. Selecting another feed dismisses the undo.
+- unread-only mode: `Shift+M` hides read feeds and entries (see the
+  shortcut table below).
 
 ## Keyboard shortcuts
 
@@ -36,6 +38,7 @@ browser hotkeys or the login form.
 | `Shift+K` | Mark every loaded entry above the open entry as read. No-op if nothing is open. |
 | `Shift+J` | Mark every loaded entry below the open entry as read (loaded entries only — entries not yet paged in stay unread). No-op if nothing is open. |
 | `Shift+G` | Fetch full content for the currently open entry (same as the `Fetch full content` button). No-op if nothing is open. |
+| `Shift+M` | Toggle unread-only mode: hide feeds with zero unread and entries already read. The active feed and the open entry stay visible (expanding marks an entry read, so it would otherwise vanish under you). While active, an `unread only` pill shows next to `Sign out`; clicking it also turns the mode off. The setting persists in `localStorage`. |
 | `?` | Toggle the shortcut help overlay. `Esc` or a click on the backdrop also closes it. |
 
 Caveat: when focus is inside an article iframe (e.g. you selected text
@@ -118,7 +121,8 @@ To enable it:
   ID when an icon's content changes, so the cache never goes stale; sign
   out clears it.
 - the feeds-panel width is remembered in `localStorage` (drag the divider
-  between the two panels to resize).
+  between the two panels to resize), and so is the unread-only toggle
+  (`Shift+M`).
 - nothing else is cached locally — feed list, counts, and entries come
   fresh from the server each session, relying on standard HTTP cache
   headers.

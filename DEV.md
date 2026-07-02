@@ -58,6 +58,17 @@ while it's open every other shortcut is suppressed and `Esc` closes it.
 entry as read — same bulk `PUT /v1/entries` + optimistic-revert pattern
 as `Mark all unread`, and same loaded-entries-only scope.
 
+`Shift+M` toggles `hideRead` (unread-only mode). `j` / `k` navigate the
+filtered `visibleEntries` list so they skip hidden rows;
+`Shift+K` / `Shift+J` still operate on all loaded entries (marking a
+read entry read is a no-op, so the scopes agree in practice). Because
+hiding read rows can leave the entry panel too short to ever fire the
+infinite-scroll handler, `fillEntryScroll()` keeps calling
+`loadMoreEntries` after each page (and on toggle / feed select) until
+the panel overflows or the feed is exhausted. While the mode is on, an
+`unread only` pill sits next to `Sign out` in the feeds-panel header
+and clicking it turns the mode off.
+
 A future iteration can inject a forwarder into the iframe `srcdoc` to
 bubble keys back to the parent so shortcuts work while focus is inside
 an article.
@@ -79,6 +90,7 @@ A single Alpine store on `<body>`:
 | `expandedEntryId` | the single open entry, drives `:open` on each `<details>` |
 | `deletedFeed` | snapshot `{feed_url, title, category_id}` of a just-unsubscribed feed; non-null while a one-step undo is offered |
 | `helpVisible` | whether the `?` shortcut-help overlay is shown; suppresses all other shortcuts while true |
+| `hideRead` | unread-only mode (`Shift+M`); persisted to localStorage. The lists render from the `visibleFeeds` / `visibleEntries` getters, which filter out read items but always keep the active feed and the expanded entry (expanding marks an entry read, so it would otherwise disappear immediately). `visibleFeeds` also passes everything through while `counts` is still empty so the list doesn't blank out before the counters endpoint returns |
 | `feedsWidth` | resizer width; written by `resizer().onEnd`, persisted to localStorage |
 
 Mutations are optimistic: status toggles, mark-all, and counter
