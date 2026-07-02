@@ -95,6 +95,22 @@
       </ul>
       </div>
     </section>
+
+    <div id="help-overlay" x-show="helpVisible" @click.self="helpVisible = false">
+      <div id="help-panel" role="dialog" aria-label="Keyboard shortcuts">
+        <h2>Keyboard shortcuts</h2>
+        <table>
+          <tr><td><kbd>j</kbd></td><td>Open the next entry</td></tr>
+          <tr><td><kbd>k</kbd></td><td>Open the previous entry</td></tr>
+          <tr><td><kbd>Shift</kbd>+<kbd>A</kbd></td><td>Mark the whole feed as read</td></tr>
+          <tr><td><kbd>Shift</kbd>+<kbd>K</kbd></td><td>Mark everything above the open entry as read</td></tr>
+          <tr><td><kbd>Shift</kbd>+<kbd>J</kbd></td><td>Mark everything below the open entry as read</td></tr>
+          <tr><td><kbd>Shift</kbd>+<kbd>G</kbd></td><td>Fetch full content for the open entry</td></tr>
+          <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Close this help</td></tr>
+        </table>
+      </div>
+    </div>
   </main>
 
 </body>

@@ -52,6 +52,12 @@ Two-panel layout:
 A single `keydown` listener at window level dispatches by `event.key`.
 Modifiers and focused form elements are filtered out at the listener.
 
+`?` toggles a help overlay listing all shortcuts (`helpVisible` in state);
+while it's open every other shortcut is suppressed and `Esc` closes it.
+`Shift+K` / `Shift+J` mark all loaded entries above / below the open
+entry as read — same bulk `PUT /v1/entries` + optimistic-revert pattern
+as `Mark all unread`, and same loaded-entries-only scope.
+
 A future iteration can inject a forwarder into the iframe `srcdoc` to
 bubble keys back to the parent so shortcuts work while focus is inside
 an article.
@@ -72,6 +78,7 @@ A single Alpine store on `<body>`:
 | `entriesLoading` | in-flight lock for `loadMoreEntries`, prevents double-fetch from rapid scroll events |
 | `expandedEntryId` | the single open entry, drives `:open` on each `<details>` |
 | `deletedFeed` | snapshot `{feed_url, title, category_id}` of a just-unsubscribed feed; non-null while a one-step undo is offered |
+| `helpVisible` | whether the `?` shortcut-help overlay is shown; suppresses all other shortcuts while true |
 | `feedsWidth` | resizer width; written by `resizer().onEnd`, persisted to localStorage |
 
 Mutations are optimistic: status toggles, mark-all, and counter

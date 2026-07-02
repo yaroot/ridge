@@ -75,6 +75,7 @@ window.app = () => ({
   entriesLoading: false,
   expandedEntryId: null,
   deletedFeed: null,
+  helpVisible: false,
   feedsWidth: localStorage.getItem(FEEDS_WIDTH_KEY) || '16rem',
 
   formatDate,
@@ -286,6 +287,18 @@ window.app = () => ({
   handleKey(e) {
     if (e.target.matches && e.target.matches('input, textarea, select')) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '?') {
+      e.preventDefault();
+      this.helpVisible = !this.helpVisible;
+      return;
+    }
+    if (this.helpVisible) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.helpVisible = false;
+      }
+      return;
+    }
     const k = e.key.toLowerCase();
     if (k === 'a' && e.shiftKey) {
       e.preventDefault();
@@ -296,6 +309,12 @@ window.app = () => ({
     } else if (k === 'k' && !e.shiftKey) {
       e.preventDefault();
       this.prevEntry();
+    } else if (k === 'j' && e.shiftKey) {
+      e.preventDefault();
+      this.markReadRelative('below');
+    } else if (k === 'k' && e.shiftKey) {
+      e.preventDefault();
+      this.markReadRelative('above');
     } else if (k === 'g' && e.shiftKey) {
       const entry = this.entries.find((x) => x.id === this.expandedEntryId);
       if (!entry) return;
@@ -351,6 +370,24 @@ window.app = () => ({
     } catch {
       for (const e of candidates) e.status = 'read';
       this.counts[feedId] = Math.max(0, (this.counts[feedId] || 0) - delta);
+    }
+  },
+
+  async markReadRelative(direction) {
+    const i = this.entries.findIndex((e) => e.id === this.expandedEntryId);
+    if (i < 0) return;
+    const slice = direction === 'above' ? this.entries.slice(0, i) : this.entries.slice(i + 1);
+    const candidates = slice.filter((e) => e.status === 'unread');
+    if (!candidates.length) return;
+    const feedId = this.activeFeedId;
+    const delta = candidates.length;
+    for (const e of candidates) e.status = 'read';
+    this.counts[feedId] = Math.max(0, (this.counts[feedId] || 0) - delta);
+    try {
+      await this.apiPut('/entries', { entry_ids: candidates.map((e) => e.id), status: 'read' });
+    } catch {
+      for (const e of candidates) e.status = 'unread';
+      this.counts[feedId] = (this.counts[feedId] || 0) + delta;
     }
   },
 

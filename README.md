@@ -33,7 +33,10 @@ browser hotkeys or the login form.
 | `j` | Open the next entry. If nothing is open, opens the first. No-op at the end of the loaded list (does not trigger `loadMoreEntries`). |
 | `k` | Open the previous entry. No-op if the first entry is already open or nothing is open. |
 | `Shift+A` | Mark the entire active feed as read (whole feed, same endpoint as the toolbar button). |
+| `Shift+K` | Mark every loaded entry above the open entry as read. No-op if nothing is open. |
+| `Shift+J` | Mark every loaded entry below the open entry as read (loaded entries only — entries not yet paged in stay unread). No-op if nothing is open. |
 | `Shift+G` | Fetch full content for the currently open entry (same as the `Fetch full content` button). No-op if nothing is open. |
+| `?` | Toggle the shortcut help overlay. `Esc` or a click on the backdrop also closes it. |
 
 Caveat: when focus is inside an article iframe (e.g. you selected text
 to copy), keypresses go to the iframe document and the window listener
