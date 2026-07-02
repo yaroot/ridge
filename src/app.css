@@ -154,7 +154,7 @@ body.resizing { cursor: col-resize; user-select: none; }
 #feed-list li.active .title { font-weight: 600; }
 #feed-list li.zero.active a { color: var(--accent); }
 #feed-list li.zero.active .favicon { opacity: 1; }
-#hide-read {
+#unread-only {
   background: transparent;
   border: 1px solid var(--accent);
   border-radius: 999px;

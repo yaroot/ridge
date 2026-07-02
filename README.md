@@ -38,7 +38,7 @@ browser hotkeys or the login form.
 | `Shift+K` | Mark every loaded entry above the open entry as read. No-op if nothing is open. |
 | `Shift+J` | Mark every loaded entry below the open entry as read (loaded entries only — entries not yet paged in stay unread). No-op if nothing is open. |
 | `Shift+G` | Fetch full content for the currently open entry (same as the `Fetch full content` button). No-op if nothing is open. |
-| `Shift+M` | Toggle unread-only mode: hide feeds with zero unread and entries already read. The active feed and the open entry stay visible (expanding marks an entry read, so it would otherwise vanish under you). While active, an `unread only` pill shows next to `Sign out`; clicking it also turns the mode off. The setting persists in `localStorage`. |
+| `Shift+M` | Toggle unread-only mode: hide feeds with zero unread and entries that were already read when the list loaded (or when the mode was switched on). Entries you read *after* that stay visible, so the list doesn't collapse under you while reading; the active feed stays visible too. While active, an `unread only` pill shows next to `Sign out`; clicking it also turns the mode off. The setting persists in `localStorage`. |
 | `?` | Toggle the shortcut help overlay. `Esc` or a click on the backdrop also closes it. |
 
 Caveat: when focus is inside an article iframe (e.g. you selected text

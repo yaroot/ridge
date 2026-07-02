@@ -1,7 +1,7 @@
 const SESSION_KEY = 'ridge-session';
 const ICON_KEY = 'ridge-icons';
 const FEEDS_WIDTH_KEY = 'ridge-feeds-width';
-const HIDE_READ_KEY = 'ridge-hide-read';
+const UNREAD_ONLY_KEY = 'ridge-unread-only';
 const API_BASE = '/v1';
 const ITEMS_LIMIT = 25;
 const MIN_FEEDS_WIDTH = 128;
@@ -77,7 +77,7 @@ window.app = () => ({
   expandedEntryId: null,
   deletedFeed: null,
   helpVisible: false,
-  hideRead: !!loadJSON(HIDE_READ_KEY),
+  unreadOnly: !!loadJSON(UNREAD_ONLY_KEY),
   feedsWidth: localStorage.getItem(FEEDS_WIDTH_KEY) || '16rem',
 
   formatDate,
@@ -92,7 +92,7 @@ window.app = () => ({
   },
 
   get visibleFeeds() {
-    if (!this.hideRead) return this.feeds;
+    if (!this.unreadOnly) return this.feeds;
     // counts arrive after feeds; don't blank the list while they load
     if (!Object.keys(this.counts).length) return this.feeds;
     return this.feeds.filter(
@@ -101,24 +101,28 @@ window.app = () => ({
   },
 
   get visibleEntries() {
-    if (!this.hideRead) return this.entries;
-    // the open entry stays visible even though expanding marks it read
+    if (!this.unreadOnly) return this.entries;
+    // hide only entries already read when loaded / when the mode was
+    // turned on — reading an entry now must not collapse the list
     return this.entries.filter(
-      (e) => e.status === 'unread' || e.id === this.expandedEntryId,
+      (e) => e.status === 'unread' || !e.wasRead || e.id === this.expandedEntryId,
     );
   },
 
-  toggleHideRead() {
-    this.hideRead = !this.hideRead;
-    saveJSON(HIDE_READ_KEY, this.hideRead);
-    if (this.hideRead) this.fillEntryScroll();
+  toggleUnreadOnly() {
+    this.unreadOnly = !this.unreadOnly;
+    saveJSON(UNREAD_ONLY_KEY, this.unreadOnly);
+    if (this.unreadOnly) {
+      for (const e of this.entries) e.wasRead = e.status === 'read';
+      this.fillEntryScroll();
+    }
   },
 
   // with read entries hidden, a page can render too short to ever fire
   // the scroll handler — keep paging until the panel overflows or the
   // feed is exhausted
   fillEntryScroll() {
-    if (!this.hideRead) return;
+    if (!this.unreadOnly) return;
     this.$nextTick(() => {
       const el = document.querySelector('.entry-scroll');
       if (el && el.scrollHeight <= el.clientHeight) this.loadMoreEntries();
@@ -224,7 +228,7 @@ window.app = () => ({
     this.deletedFeed = null;
     try {
       const r = await this.apiGet(this.entriesUrl(id, 0));
-      this.entries = (r.entries || []).map((e) => ({ ...e, fetching: false }));
+      this.entries = (r.entries || []).map((e) => ({ ...e, fetching: false, wasRead: e.status === 'read' }));
       this.entriesTotal = r.total || 0;
       this.fillEntryScroll();
     } catch { /* handled in apiCall */ }
@@ -281,7 +285,7 @@ window.app = () => ({
     let grew = false;
     try {
       const r = await this.apiGet(this.entriesUrl(this.activeFeedId, this.entries.length));
-      const more = (r.entries || []).map((e) => ({ ...e, fetching: false }));
+      const more = (r.entries || []).map((e) => ({ ...e, fetching: false, wasRead: e.status === 'read' }));
       grew = more.length > 0;
       this.entries = [...this.entries, ...more];
       this.entriesTotal = r.total ?? this.entriesTotal;
@@ -362,7 +366,7 @@ window.app = () => ({
       this.markReadRelative('above');
     } else if (k === 'm' && e.shiftKey) {
       e.preventDefault();
-      this.toggleHideRead();
+      this.toggleUnreadOnly();
     } else if (k === 'g' && e.shiftKey) {
       const entry = this.entries.find((x) => x.id === this.expandedEntryId);
       if (!entry) return;

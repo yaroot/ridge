@@ -58,7 +58,10 @@ while it's open every other shortcut is suppressed and `Esc` closes it.
 entry as read — same bulk `PUT /v1/entries` + optimistic-revert pattern
 as `Mark all unread`, and same loaded-entries-only scope.
 
-`Shift+M` toggles `hideRead` (unread-only mode). `j` / `k` navigate the
+`Shift+M` toggles `unreadOnly` (unread-only mode). Hiding keys off the
+`wasRead` snapshot, not live status, so reading an entry in this mode
+never removes it from the list — only a reload / feed re-select / mode
+re-toggle re-evaluates. `j` / `k` navigate the
 filtered `visibleEntries` list so they skip hidden rows;
 `Shift+K` / `Shift+J` still operate on all loaded entries (marking a
 read entry read is a no-op, so the scopes agree in practice). Because
@@ -90,7 +93,7 @@ A single Alpine store on `<body>`:
 | `expandedEntryId` | the single open entry, drives `:open` on each `<details>` |
 | `deletedFeed` | snapshot `{feed_url, title, category_id}` of a just-unsubscribed feed; non-null while a one-step undo is offered |
 | `helpVisible` | whether the `?` shortcut-help overlay is shown; suppresses all other shortcuts while true |
-| `hideRead` | unread-only mode (`Shift+M`); persisted to localStorage. The lists render from the `visibleFeeds` / `visibleEntries` getters, which filter out read items but always keep the active feed and the expanded entry (expanding marks an entry read, so it would otherwise disappear immediately). `visibleFeeds` also passes everything through while `counts` is still empty so the list doesn't blank out before the counters endpoint returns |
+| `unreadOnly` | unread-only mode (`Shift+M`); persisted to localStorage. The lists render from the `visibleFeeds` / `visibleEntries` getters. `visibleEntries` hides an entry only if its `wasRead` snapshot is true — `wasRead` is captured when a page of entries loads and re-captured for all loaded entries when the mode is switched on, so entries read *after* that (expand, dot-click, bulk marks) stay visible and the list doesn't collapse mid-reading. Unread entries and the expanded entry are always visible. `visibleFeeds` keeps the active feed and passes everything through while `counts` is still empty so the list doesn't blank out before the counters endpoint returns |
 | `feedsWidth` | resizer width; written by `resizer().onEnd`, persisted to localStorage |
 
 Mutations are optimistic: status toggles, mark-all, and counter

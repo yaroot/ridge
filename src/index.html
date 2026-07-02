@@ -29,9 +29,9 @@
     <aside id="feeds-panel">
       <header>
         <h2>Feeds</h2>
-        <button id="hide-read" type="button" x-show="hideRead"
+        <button id="unread-only" type="button" x-show="unreadOnly"
                 title="Read feeds and entries are hidden — click or press Shift+M to show them"
-                @click="toggleHideRead()">unread only</button>
+                @click="toggleUnreadOnly()">unread only</button>
         <button id="signout" type="button" @click="signOut()">Sign out</button>
       </header>
       <div class="feeds-scroll">
